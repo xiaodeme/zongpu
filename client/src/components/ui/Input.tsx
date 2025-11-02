@@ -1,9 +1,17 @@
 import React, { forwardRef } from 'react';
 
+/**
+ * Input组件属性
+ * 继承原生input的所有属性
+ */
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string;
 }
 
+/**
+ * Input输入框组件
+ * 支持ref转发，用于表单控制
+ */
 const Input = forwardRef<HTMLInputElement, InputProps>(({
   className = '',
   ...props

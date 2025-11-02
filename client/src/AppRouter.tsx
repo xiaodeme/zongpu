@@ -1,16 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom';
 import LoginPage from './features/LoginPage';
 import ChatPage from './features/ChatPage';
-import ProtectedRoute from './components/ProtectedRoute';
 
+/**
+ * 应用路由配置
+ */
 const router = createBrowserRouter([
   {
     path: '/',
-    element: (
-      <ProtectedRoute>
-        <ChatPage />
-      </ProtectedRoute>
-    ),
+    element: <ChatPage />,
   },
   {
     path: '/login',

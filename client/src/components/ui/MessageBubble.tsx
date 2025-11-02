@@ -2,11 +2,18 @@ import React from 'react';
 import { Message } from '../../stores/chat';
 import { UserIcon, BotIcon } from 'lucide-react';
 
+/**
+ * 消息气泡组件属性
+ */
 interface MessageBubbleProps {
   message: Message;
   time: string;
 }
 
+/**
+ * 消息气泡组件
+ * 显示用户或助手的消息，包含头像和时间戳
+ */
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, time }) => {
   const isUser = message.role === 'user';
 

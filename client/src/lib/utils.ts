@@ -1,34 +1,17 @@
-import { AxiosError } from 'axios';
-
-/**
- * 格式化错误消息
- */
-export const errorMessage = (error: any): string => {
-  if (error instanceof AxiosError) {
-    if (error.response) {
-      // 服务器返回了错误状态码
-      if (error.response.data?.message) {
-        return error.response.data.message;
-      }
-      return `服务器错误: ${error.response.status} ${error.response.statusText}`;
-    } else if (error.request) {
-      // 请求已发出，但没有收到响应
-      return '网络错误，请检查您的连接';
-    }
-  }
-  // 其他错误
-  return error?.message || String(error) || '未知错误';
-};
-
 /**
  * 生成唯一ID
+ * 使用时间戳和随机数组合生成
+ * @returns 唯一ID字符串
  */
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
 /**
- * 格式化时间
+ * 格式化时间戳
+ * 将时间戳转换为本地时间字符串（HH:MM格式）
+ * @param timestamp 时间戳（毫秒）
+ * @returns 格式化后的时间字符串
  */
 export const formatTime = (timestamp: number): string => {
   const date = new Date(timestamp);
