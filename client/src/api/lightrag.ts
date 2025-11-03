@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { backendBaseUrl, defaultTimeout } from '@/lib/constants';
-import { useAuthStore } from '@/stores/state';
 
 /**
  * 动态获取后端URL（与sendQueryStream中的逻辑一致）
@@ -154,38 +153,18 @@ const api = axios.create({
 
 /**
  * 请求拦截器
- * 自动在请求头中添加认证token，并动态更新baseURL
+ * 动态更新baseURL，确保非本机访问时使用正确的IP地址
  * 关键：每次请求都强制更新baseURL，确保非本机访问时使用正确的IP地址
  */
 api.interceptors.request.use(
   (config) => {
     // 动态更新baseURL，确保每次请求都使用正确的主机名
     // 这对于手机访问同一局域网时特别重要
-    // 注意：每次都强制更新，不检查是否相同，因为hostname可能在运行时变化
     const dynamicUrl = getDynamicBackendUrl();
     
-    // 记录baseURL更新（用于调试）
+    // 更新baseURL
     if (config.baseURL !== dynamicUrl) {
-      console.log('[axios拦截器] 更新baseURL:', {
-        old: config.baseURL,
-        new: dynamicUrl,
-        url: config.url,
-        fullUrl: dynamicUrl + (config.url || ''),
-      });
       config.baseURL = dynamicUrl;
-    } else {
-      // 即使相同也记录（帮助确认逻辑正确）
-      console.log('[axios拦截器] baseURL已是最新:', {
-        baseURL: dynamicUrl,
-        url: config.url,
-        fullUrl: dynamicUrl + (config.url || ''),
-      });
-    }
-    
-    // 从store获取token并添加到请求头
-    const { accessToken } = useAuthStore.getState();
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -200,97 +179,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => Promise.reject(error)
 );
-
-/**
- * 登录到服务器
- * @param username 用户名
- * @param password 密码
- * @returns 登录响应，包含access_token等信息
- */
-export const loginToServer = async (username: string, password: string) => {
-  // 准备表单数据
-  const formData = new URLSearchParams();
-  formData.append('username', username);
-  formData.append('password', password);
-
-  // 发送登录请求
-  const response = await api.post('/login', formData, {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  });
-
-  // 返回标准化的登录响应
-  return {
-    access_token: response.data.access_token,
-    user_info: response.data.user_info || { username },
-    core_version: response.data.core_version || '',
-    api_version: response.data.api_version || '',
-  };
-};
-
-/**
- * 处理登录错误
- * @param error 错误对象
- * @returns 格式化的错误信息
- */
-export const handleLoginError = (error: any): string => {
-  if (error.response?.status === 404) {
-    return '后端未启用认证功能，无需登录';
-  }
-  if (error.response?.status === 401) {
-    return '用户名或密码错误';
-  }
-  return error.response?.data?.detail || error.message || '登录失败，请重试';
-};
-
-/**
- * 获取认证状态
- * 检查后端是否启用认证，如果未启用则获取访客token
- * @returns 认证状态信息
- */
-export const getAuthStatus = async () => {
-  try {
-    // 发送健康检查请求
-    const { data: healthData } = await api.get('/health');
-    
-    // 初始化基本返回信息
-    const baseInfo = {
-      auth_configured: healthData.auth_mode !== 'disabled',
-      access_token: null,
-      core_version: healthData.core_version || '',
-      api_version: healthData.api_version || '',
-      webui_title: healthData.webui_title || null,
-      webui_description: healthData.webui_description || null,
-    };
-
-    // 如果认证未启用，尝试获取访客token
-    if (healthData.auth_mode === 'disabled') {
-      try {
-        const { data: authData } = await api.get('/auth-status');
-        return {
-          ...baseInfo,
-          access_token: authData.access_token || null,
-        };
-      } catch {
-        // 获取访客token失败，返回基本信息
-        return baseInfo;
-      }
-    }
-
-    return baseInfo;
-  } catch {
-    // 健康检查失败，返回默认值
-    return {
-      auth_configured: false,
-      access_token: null,
-      core_version: '',
-      api_version: '',
-      webui_title: null,
-      webui_description: null,
-    };
-  }
-};
 
 /**
  * 流式查询API
@@ -311,12 +199,10 @@ export const sendQueryStream = async (
     const backendUrl = getDynamicBackendUrl();
     const requestUrl = `${backendUrl}/query/stream`;
     
-    // 构建请求参数
-    const { accessToken } = useAuthStore.getState();
+    // 构建请求头
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/x-ndjson',
-      ...(accessToken && { Authorization: `Bearer ${accessToken}` })
     };
 
     // 添加调试信息（始终输出，帮助排查手机访问问题）

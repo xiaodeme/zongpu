@@ -1,5 +1,4 @@
 import { createBrowserRouter } from 'react-router-dom';
-import LoginPage from './features/LoginPage';
 import ChatPage from './features/ChatPage';
 
 /**
@@ -9,10 +8,6 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <ChatPage />,
-  },
-  {
-    path: '/login',
-    element: <LoginPage />,
   },
 ]);
 

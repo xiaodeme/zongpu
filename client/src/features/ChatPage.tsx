@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { useAuthStore } from '../stores/state';
 import { useChatStore, Message } from '../stores/chat';
 import { sendQueryStream } from '../api/lightrag';
 import { toast } from 'sonner';
 import { generateId, formatTime } from '../lib/utils';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import { SendIcon, LogOutIcon, TrashIcon, ArrowLeftRightIcon } from 'lucide-react';
+import { SendIcon, TrashIcon, ArrowLeftRightIcon } from 'lucide-react';
 import MessageBubble from '../components/ui/MessageBubble';
 
 /**
@@ -14,7 +13,6 @@ import MessageBubble from '../components/ui/MessageBubble';
  * 主要的对话界面，支持发送消息和接收流式响应
  */
 const ChatPage = () => {
-  const { logout } = useAuthStore();
   const { messages, isLoading, addMessage, updateMessage, setLoading, clearMessages } = useChatStore();
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -101,14 +99,6 @@ const ChatPage = () => {
   };
 
   /**
-   * 处理退出登录
-   */
-  const handleLogout = () => {
-    logout();
-    toast.info('已成功退出登录');
-  };
-
-  /**
    * 处理清空对话
    */
   const handleClear = () => {
@@ -122,24 +112,14 @@ const ChatPage = () => {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-2 px-4 shadow-sm">
         <div className="flex justify-between items-center">
           <h1 className="text-base font-semibold text-gray-900 dark:text-white">宗谱对话系统</h1>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClear}
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-1"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
-            >
-              <LogOutIcon className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClear}
+            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-1"
+          >
+            <TrashIcon className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 
@@ -191,7 +171,7 @@ const ChatPage = () => {
             onKeyPress={handleKeyPress}
             placeholder={isLoading ? '正在回复中...' : '请输入您的问题...'}
             disabled={isLoading}
-            className="flex-1 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
+            className="flex-1 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 py-3"
             autoComplete="off"
           />
           <Button
